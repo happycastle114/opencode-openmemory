@@ -1,6 +1,6 @@
 {
   "name": "@happycastle/opencode-openmemory",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "OpenCode plugin that gives coding agents persistent memory using OpenMemory (local-first, privacy-focused)",
   "type": "module",
   "main": "dist/index.js",

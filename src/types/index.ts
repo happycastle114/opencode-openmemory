@@ -127,17 +127,121 @@ export interface IMemoryBackendClient {
 }
 
 // Temporal Knowledge Graph types
-export interface TemporalFactInput {
+export interface TemporalFact {
+  id: string;
+  subject: string;
+  predicate: string;
+  object: string;
+  valid_from: string;
+  valid_to?: string;
+  confidence: number;
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+}
+
+export interface CreateTemporalFactInput {
   subject: string;
   predicate: string;
   object: string;
   validFrom?: string;
-  validTo?: string;
+  confidence?: number;
   metadata?: Record<string, unknown>;
 }
 
-export interface TemporalFactResult {
+export interface CreateTemporalFactResult {
   success: boolean;
   id?: string;
+  subject?: string;
+  predicate?: string;
+  object?: string;
+  valid_from?: string;
+  confidence?: number;
+  error?: string;
+}
+
+export interface QueryTemporalFactsInput {
+  subject?: string;
+  predicate?: string;
+  object?: string;
+  at?: string;
+  minConfidence?: number;
+}
+
+export interface QueryTemporalFactsResult {
+  success: boolean;
+  facts: TemporalFact[];
+  count: number;
+  error?: string;
+}
+
+export interface GetCurrentFactInput {
+  subject: string;
+  predicate: string;
+}
+
+export interface GetCurrentFactResult {
+  success: boolean;
+  fact?: TemporalFact;
+  error?: string;
+}
+
+export interface GetTimelineInput {
+  subject: string;
+  predicate?: string;
+}
+
+export interface TimelineEntry {
+  id: string;
+  predicate: string;
+  object: string;
+  valid_from: string;
+  valid_to?: string;
+  confidence: number;
+}
+
+export interface GetTimelineResult {
+  success: boolean;
+  subject: string;
+  predicate?: string;
+  timeline: TimelineEntry[];
+  count: number;
+  error?: string;
+}
+
+export interface InvalidateFactInput {
+  id: string;
+  validTo?: string;
+}
+
+export interface InvalidateFactResult {
+  success: boolean;
+  id?: string;
+  valid_to?: string;
+  error?: string;
+}
+
+export interface TemporalStatsResult {
+  success: boolean;
+  active_facts?: number;
+  historical_facts?: number;
+  total_facts?: number;
+  error?: string;
+}
+
+export interface CompareFactsInput {
+  subject: string;
+  time1: string;
+  time2: string;
+}
+
+export interface CompareFactsResult {
+  success: boolean;
+  subject?: string;
+  time1?: string;
+  time2?: string;
+  added: TemporalFact[];
+  removed: TemporalFact[];
+  changed: Array<{ before: TemporalFact; after: TemporalFact }>;
+  unchanged: TemporalFact[];
   error?: string;
 }
