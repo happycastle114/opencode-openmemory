@@ -1,6 +1,6 @@
 {
-  "name": "opencode-openmemory",
-  "version": "0.1.0",
+  "name": "@eddy.soungmin/opencode-openmemory",
+  "version": "0.0.1",
   "description": "OpenCode plugin that gives coding agents persistent memory using OpenMemory (local-first, privacy-focused)",
   "type": "module",
   "main": "dist/index.js",
@@ -17,18 +17,25 @@
     "opencode",
     "plugin",
     "openmemory",
-    "mem0",
     "memory",
     "ai",
     "coding-agent",
     "local-first",
-    "privacy"
+    "privacy",
+    "cavira"
   ],
-  "author": "OpenCode Community",
+  "author": "eddy.soungmin",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/opencode-ai/opencode-openmemory"
+    "url": "https://github.com/happycastle114/opencode-openmemory"
+  },
+  "bugs": {
+    "url": "https://github.com/happycastle114/opencode-openmemory/issues"
+  },
+  "homepage": "https://github.com/happycastle114/opencode-openmemory#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.0.162"

@@ -1,6 +1,6 @@
-# opencode-openmemory
+# @eddy.soungmin/opencode-openmemory
 
-[![npm version](https://badge.fury.io/js/opencode-openmemory.svg)](https://www.npmjs.com/package/opencode-openmemory)
+[![npm version](https://badge.fury.io/js/@eddy.soungmin%2Fopencode-openmemory.svg)](https://www.npmjs.com/package/@eddy.soungmin/opencode-openmemory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Local-first, privacy-focused persistent memory for OpenCode agents** using [OpenMemory](https://github.com/CaviraOSS/OpenMemory).
@@ -14,8 +14,6 @@ A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-super
 - **Automatic context injection**: User profile, project memory, and relevant memories injected into conversations
 - **Explicit & implicit memory capture**: Save memories with "remember this" or let the agent extract knowledge automatically
 - **Scope separation**: User-level (cross-project) vs project-level memories
-- **HSG Memory Sectors**: Episodic, Semantic, Procedural, Emotional, Reflective
-- **Adapter pattern**: Swap between MCP and REST backends easily
 - **Context compaction**: Smart summarization when context window fills up
 
 ## Architecture
@@ -26,25 +24,15 @@ A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-super
 │  - Injection Policy (format, token budget, priority)          │
 │  - Memory Capture Policy (explicit "remember", implicit)      │
 │  - Scope Router (user_id, project_id)                         │
-│  - Adapter: MemoryBackendClient (MCP/REST)                    │
 └───────────────────┬───────────────────────────────────────────┘
                     │
-        ┌───────────┴───────────┐
-        │                       │
-        v                       v
-┌───────────────┐       ┌───────────────┐
-│  MCP Client   │       │  REST Client  │
-│  (default)    │       │  (optional)   │
-└───────┬───────┘       └───────┬───────┘
-        │                       │
-        └───────────┬───────────┘
                     v
 ┌───────────────────────────────────────────────────────────────┐
-│                 OpenMemory Server                              │
+│                 OpenMemory Server (REST API)                   │
 │  - Store: raw notes / facts / events / snippets                │
 │  - Index: embeddings + metadata (scope/recency/type)           │
 │  - Retrieval: hybrid scoring (similarity + salience + decay)   │
-│  - HSG: 5 memory sectors (episodic/semantic/procedural/...)    │
+│  - Default: http://localhost:8080                              │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,14 +41,14 @@ A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-super
 ### 1. Install the plugin
 
 ```bash
-bunx opencode-openmemory@latest install
+bunx @eddy.soungmin/opencode-openmemory@latest install
 ```
 
 Or manually add to `~/.config/opencode/opencode.jsonc`:
 
 ```jsonc
 {
-  "plugin": ["opencode-openmemory@latest"]
+  "plugin": ["@eddy.soungmin/opencode-openmemory@latest"]
 }
 ```
 
@@ -89,7 +77,7 @@ For more details, see the [OpenMemory documentation](https://github.com/CaviraOS
 
 ### 3. Restart OpenCode
 
-The plugin will automatically detect and use OpenMemory MCP tools.
+The plugin will automatically connect to OpenMemory REST API at `http://localhost:8080`.
 
 ## Configuration
 
@@ -97,11 +85,8 @@ Create `~/.config/opencode/openmemory.jsonc`:
 
 ```jsonc
 {
-  // Backend: "openmemory" (MCP) or "openmemory-rest" (REST API)
-  "backend": "openmemory",
-  
-  // REST API settings (when using openmemory-rest backend)
-  // "apiUrl": "http://localhost:8080",
+  // OpenMemory REST API URL
+  "apiUrl": "http://localhost:8080",
   
   // Search settings
   "similarityThreshold": 0.6,
@@ -127,7 +112,7 @@ Create `~/.config/opencode/openmemory.jsonc`:
 
 On the first message of each session, the plugin automatically injects:
 
-1. **User Profile**: Cross-project preferences and patterns (high salience memories)
+1. **User Profile**: Cross-project preferences and patterns
 2. **Project Knowledge**: Project-specific memories from the current directory
 3. **Relevant Memories**: Semantically similar memories to the current query
 
@@ -147,12 +132,11 @@ The `openmemory` tool is available with these modes:
 
 | Mode | Description | Arguments |
 |------|-------------|-----------|
-| `add` | Store a new memory | `content`, `type?`, `scope?`, `sector?` |
-| `search` | Search memories | `query`, `scope?`, `sector?`, `limit?` |
+| `add` | Store a new memory | `content`, `type?`, `scope?` |
+| `search` | Search memories | `query`, `scope?`, `limit?` |
 | `profile` | View user profile | `query?` |
-| `list` | List recent memories | `scope?`, `sector?`, `limit?` |
+| `list` | List recent memories | `scope?`, `limit?` |
 | `forget` | Remove a memory | `memoryId`, `scope?` |
-| `reinforce` | Boost memory importance | `memoryId`, `boost?` |
 | `help` | Show usage guide | - |
 
 **Scopes:**
@@ -167,13 +151,6 @@ The `openmemory` tool is available with these modes:
 - `preference`: Coding style preferences
 - `conversation`: Session summaries
 
-**Memory Sectors (HSG):**
-- `episodic`: Events, experiences, temporal sequences
-- `semantic`: Facts, concepts, general knowledge (default)
-- `procedural`: Skills, how-to knowledge, processes
-- `emotional`: Feelings, sentiments, reactions
-- `reflective`: Meta-cognition, insights, patterns
-
 ### Initialize Memory
 
 Run the `/openmemory-init` command to deeply research your codebase and populate memory:
@@ -181,18 +158,6 @@ Run the `/openmemory-init` command to deeply research your codebase and populate
 ```
 /openmemory-init
 ```
-
-## OpenMemory MCP Tools
-
-The plugin uses these OpenMemory MCP tools:
-
-| Tool | Description |
-|------|-------------|
-| `openmemory_openmemory_query` | Semantic search with salience scoring |
-| `openmemory_openmemory_store` | Store new memories with tags and metadata |
-| `openmemory_openmemory_list` | List recent memories by sector |
-| `openmemory_openmemory_get` | Fetch a specific memory by ID |
-| `openmemory_openmemory_reinforce` | Boost memory salience |
 
 ## Context Compaction
 
@@ -202,6 +167,18 @@ When the context window fills up (80% by default), the plugin:
 2. Triggers OpenCode's summarization
 3. Saves the summary as a memory for future sessions
 4. Automatically resumes the conversation
+
+## Usage with Oh My OpenCode
+
+If you're using [Oh My OpenCode](https://github.com/pinkpixel-dev/oh-my-opencode), disable its built-in auto-compact hook to let this plugin handle context compaction:
+
+Add to `~/.config/opencode/oh-my-opencode.json`:
+
+```json
+{
+  "disabled_hooks": ["anthropic-context-window-limit-recovery"]
+}
+```
 
 ## Development
 
@@ -228,13 +205,11 @@ bun run build && opencode --plugin ./dist/index.js
 
 ## Comparison with opencode-supermemory
 
-| Feature | opencode-supermemory | opencode-openmemory |
-|---------|---------------------|---------------------|
+| Feature | opencode-supermemory | @eddy.soungmin/opencode-openmemory |
+|---------|---------------------|-------------------------------------|
 | Backend | Supermemory Cloud | OpenMemory (local) |
 | Data Location | Cloud | Your machine |
 | Privacy | Requires API key | Fully local |
-| Memory Model | Key-value | HSG (5 sectors) |
-| Salience | No | Yes (decay + boost) |
 | Cost | API usage fees | Free (self-hosted) |
 
 ## License
@@ -256,3 +231,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Based on [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory) by Supermemory
 - Uses [OpenMemory](https://github.com/CaviraOSS/OpenMemory) by CaviraOSS
 - Developed by [@happycastle114](https://github.com/happycastle114)
+
+## Special Thanks
+
+- [Oh My OpenCode](https://github.com/pinkpixel-dev/oh-my-opencode) - This plugin was developed using Oh My OpenCode's powerful agent orchestration capabilities
