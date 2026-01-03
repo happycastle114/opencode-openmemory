@@ -445,6 +445,7 @@ export function createMemoryClient(): IMemoryBackendClient {
 }
 
 let memoryClientInstance: IMemoryBackendClient | null = null;
+let mcpCallerConfigured = false;
 
 export function getMemoryClient(): IMemoryBackendClient {
   if (!memoryClientInstance) {
@@ -453,23 +454,44 @@ export function getMemoryClient(): IMemoryBackendClient {
   return memoryClientInstance;
 }
 
+export function setMCPCaller(caller: (toolName: string, args: Record<string, unknown>) => Promise<unknown>): void {
+  const client = getMemoryClient();
+  if (client instanceof OpenMemoryMCPClient) {
+    client.setMCPCaller(caller);
+    mcpCallerConfigured = true;
+    log("MCP caller configured for OpenMemory client");
+  }
+}
+
+export function isMCPConfigured(): boolean {
+  return mcpCallerConfigured && getBackendType() === "openmemory";
+}
+
+export function getEffectiveClient(): IMemoryBackendClient {
+  if (getBackendType() === "openmemory" && !mcpCallerConfigured) {
+    log("MCP not configured, falling back to REST client");
+    return new OpenMemoryRESTClient();
+  }
+  return getMemoryClient();
+}
+
 export const openMemoryClient = {
   get client(): IMemoryBackendClient {
-    return getMemoryClient();
+    return getEffectiveClient();
   },
   
   searchMemories: (query: string, scope: MemoryScopeContext, options?: { limit?: number; minSalience?: number; sector?: MemorySector }) => 
-    getMemoryClient().searchMemories(query, scope, options),
+    getEffectiveClient().searchMemories(query, scope, options),
   
   addMemory: (content: string, scope: MemoryScopeContext, options?: { type?: MemoryType; tags?: string[]; metadata?: Record<string, unknown> }) => 
-    getMemoryClient().addMemory(content, scope, options),
+    getEffectiveClient().addMemory(content, scope, options),
   
   listMemories: (scope: MemoryScopeContext, options?: { limit?: number; sector?: MemorySector }) => 
-    getMemoryClient().listMemories(scope, options),
+    getEffectiveClient().listMemories(scope, options),
   
   deleteMemory: (memoryId: string, scope: MemoryScopeContext) => 
-    getMemoryClient().deleteMemory(memoryId, scope),
+    getEffectiveClient().deleteMemory(memoryId, scope),
   
   getProfile: (scope: MemoryScopeContext, query?: string) => 
-    getMemoryClient().getProfile(scope, query),
+    getEffectiveClient().getProfile(scope, query),
 };

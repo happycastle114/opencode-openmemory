@@ -38,7 +38,7 @@ interface OpenMemoryConfig {
 
 const DEFAULTS: Required<Omit<OpenMemoryConfig, "apiKey">> = {
   backend: "openmemory",
-  apiUrl: "http://localhost:8765",
+  apiUrl: "http://localhost:8080",
   similarityThreshold: 0.6,
   maxMemories: 5,
   maxProjectMemories: 10,

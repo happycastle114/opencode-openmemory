@@ -3,9 +3,9 @@
 [![npm version](https://badge.fury.io/js/opencode-openmemory.svg)](https://www.npmjs.com/package/opencode-openmemory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Local-first, privacy-focused persistent memory for OpenCode agents** using [OpenMemory](https://github.com/mem0ai/mem0/tree/main/openmemory).
+**Local-first, privacy-focused persistent memory for OpenCode agents** using [OpenMemory](https://github.com/CaviraOSS/OpenMemory).
 
-A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory), redesigned to work with OpenMemory - an open-source, self-hosted memory backend that keeps your data on your machine.
+A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory), redesigned to work with OpenMemory - an open-source, self-hosted cognitive memory engine that keeps your data on your machine.
 
 ## Features
 
@@ -69,18 +69,23 @@ Or manually add to `~/.config/opencode/opencode.jsonc`:
 **Option A: Docker (recommended)**
 
 ```bash
-curl -sL https://raw.githubusercontent.com/mem0ai/mem0/main/openmemory/run.sh | bash
+git clone https://github.com/CaviraOSS/OpenMemory.git
+cd OpenMemory
+cp .env.example .env
+# Edit .env with your OPENAI_API_KEY (for embeddings)
+docker compose up --build -d
 ```
 
-**Option B: Manual setup**
+**Option B: Manual setup (for development)**
 
 ```bash
-git clone https://github.com/mem0ai/mem0.git
-cd mem0/openmemory
-cp api/.env.example api/.env
-# Edit api/.env with your OPENAI_API_KEY
-docker-compose up --build
+git clone https://github.com/CaviraOSS/OpenMemory.git
+cd OpenMemory/backend
+npm install
+npm run dev   # Starts on :8080 by default
 ```
+
+For more details, see the [OpenMemory documentation](https://github.com/CaviraOSS/OpenMemory).
 
 ### 3. Restart OpenCode
 
@@ -96,7 +101,7 @@ Create `~/.config/opencode/openmemory.jsonc`:
   "backend": "openmemory",
   
   // REST API settings (when using openmemory-rest backend)
-  // "apiUrl": "http://localhost:8765",
+  // "apiUrl": "http://localhost:8080",
   
   // Search settings
   "similarityThreshold": 0.6,
@@ -249,5 +254,5 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Credits
 
 - Based on [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory) by Supermemory
-- Uses [OpenMemory](https://github.com/mem0ai/mem0/tree/main/openmemory) by Mem0.ai
+- Uses [OpenMemory](https://github.com/CaviraOSS/OpenMemory) by CaviraOSS
 - Developed by [@happycastle114](https://github.com/happycastle114)

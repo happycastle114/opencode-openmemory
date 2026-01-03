@@ -344,7 +344,7 @@ function createOpenMemoryConfig(): boolean {
   "backend": "openmemory",
   
   // REST API settings (only used when backend is "openmemory-rest")
-  // "apiUrl": "http://localhost:8765",
+  // "apiUrl": "http://localhost:8080",
   // "apiKey": "your-api-key-if-needed",
   
   // Search settings
@@ -464,12 +464,17 @@ async function install(options: InstallOptions): Promise<number> {
   console.log("\n🚀 Final step: Start OpenMemory\n");
   console.log("OpenMemory runs locally on your machine. To start it:\n");
   console.log("Option 1: Docker (recommended)");
-  console.log("  curl -sL https://raw.githubusercontent.com/mem0ai/mem0/main/openmemory/run.sh | bash\n");
-  console.log("Option 2: Manual setup");
-  console.log("  git clone https://github.com/mem0ai/mem0.git");
-  console.log("  cd mem0/openmemory");
-  console.log("  docker-compose up --build\n");
-  console.log("Then configure your ~/.config/opencode/openmemory.jsonc if needed.");
+  console.log("  git clone https://github.com/CaviraOSS/OpenMemory.git");
+  console.log("  cd OpenMemory");
+  console.log("  cp .env.example .env");
+  console.log("  docker compose up --build -d\n");
+  console.log("Option 2: Manual setup (for development)");
+  console.log("  git clone https://github.com/CaviraOSS/OpenMemory.git");
+  console.log("  cd OpenMemory/backend");
+  console.log("  npm install");
+  console.log("  npm run dev\n");
+  console.log("For more details, see: https://github.com/CaviraOSS/OpenMemory");
+  console.log("\nThen configure your ~/.config/opencode/openmemory.jsonc if needed.");
   console.log("\n" + "─".repeat(50));
   console.log("\n✓ Setup complete! Restart OpenCode to activate.\n");
 
