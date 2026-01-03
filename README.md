@@ -170,7 +170,7 @@ When the context window fills up (80% by default), the plugin:
 
 ## Usage with Oh My OpenCode
 
-If you're using [Oh My OpenCode](https://github.com/pinkpixel-dev/oh-my-opencode), disable its built-in auto-compact hook to let this plugin handle context compaction:
+If you're using [Oh My OpenCode](https://github.com/code-yeongyu/oh-my-opencode), disable its built-in auto-compact hook to let this plugin handle context compaction:
 
 Add to `~/.config/opencode/oh-my-opencode.json`:
 
@@ -234,4 +234,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Special Thanks
 
-- [Oh My OpenCode](https://github.com/pinkpixel-dev/oh-my-opencode) - This plugin was developed using Oh My OpenCode's powerful agent orchestration capabilities
+- [Oh My OpenCode](https://github.com/code-yeongyu/oh-my-opencode) - This plugin was developed using Oh My OpenCode's powerful agent orchestration capabilities
