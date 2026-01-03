@@ -445,9 +445,18 @@ export function createMemoryClient(): IMemoryBackendClient {
 }
 
 let memoryClientInstance: IMemoryBackendClient | null = null;
+let restClientInstance: OpenMemoryRESTClient | null = null;
 let mcpCallerConfigured = false;
 
 export function getMemoryClient(): IMemoryBackendClient {
+  if (getBackendType() === "openmemory" && !mcpCallerConfigured) {
+    if (!restClientInstance) {
+      log("MCP not configured, using REST client");
+      restClientInstance = new OpenMemoryRESTClient();
+    }
+    return restClientInstance;
+  }
+  
   if (!memoryClientInstance) {
     memoryClientInstance = createMemoryClient();
   }
@@ -455,9 +464,11 @@ export function getMemoryClient(): IMemoryBackendClient {
 }
 
 export function setMCPCaller(caller: (toolName: string, args: Record<string, unknown>) => Promise<unknown>): void {
-  const client = getMemoryClient();
-  if (client instanceof OpenMemoryMCPClient) {
-    client.setMCPCaller(caller);
+  if (!memoryClientInstance) {
+    memoryClientInstance = createMemoryClient();
+  }
+  if (memoryClientInstance instanceof OpenMemoryMCPClient) {
+    memoryClientInstance.setMCPCaller(caller);
     mcpCallerConfigured = true;
     log("MCP caller configured for OpenMemory client");
   }
@@ -467,31 +478,23 @@ export function isMCPConfigured(): boolean {
   return mcpCallerConfigured && getBackendType() === "openmemory";
 }
 
-export function getEffectiveClient(): IMemoryBackendClient {
-  if (getBackendType() === "openmemory" && !mcpCallerConfigured) {
-    log("MCP not configured, falling back to REST client");
-    return new OpenMemoryRESTClient();
-  }
-  return getMemoryClient();
-}
-
 export const openMemoryClient = {
   get client(): IMemoryBackendClient {
-    return getEffectiveClient();
+    return getMemoryClient();
   },
   
   searchMemories: (query: string, scope: MemoryScopeContext, options?: { limit?: number; minSalience?: number; sector?: MemorySector }) => 
-    getEffectiveClient().searchMemories(query, scope, options),
+    getMemoryClient().searchMemories(query, scope, options),
   
   addMemory: (content: string, scope: MemoryScopeContext, options?: { type?: MemoryType; tags?: string[]; metadata?: Record<string, unknown> }) => 
-    getEffectiveClient().addMemory(content, scope, options),
+    getMemoryClient().addMemory(content, scope, options),
   
   listMemories: (scope: MemoryScopeContext, options?: { limit?: number; sector?: MemorySector }) => 
-    getEffectiveClient().listMemories(scope, options),
+    getMemoryClient().listMemories(scope, options),
   
   deleteMemory: (memoryId: string, scope: MemoryScopeContext) => 
-    getEffectiveClient().deleteMemory(memoryId, scope),
+    getMemoryClient().deleteMemory(memoryId, scope),
   
   getProfile: (scope: MemoryScopeContext, query?: string) => 
-    getEffectiveClient().getProfile(scope, query),
+    getMemoryClient().getProfile(scope, query),
 };
