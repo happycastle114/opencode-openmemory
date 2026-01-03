@@ -1,5 +1,5 @@
 {
-  "name": "@eddy.soungmin/opencode-openmemory",
+  "name": "@happycastle/opencode-openmemory",
   "version": "0.0.1",
   "description": "OpenCode plugin that gives coding agents persistent memory using OpenMemory (local-first, privacy-focused)",
   "type": "module",
@@ -24,7 +24,7 @@
     "privacy",
     "cavira"
   ],
-  "author": "eddy.soungmin",
+  "author": "eddy.son",
   "license": "MIT",
   "repository": {
     "type": "git",
