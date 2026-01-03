@@ -1,0 +1,51 @@
+{
+  "name": "opencode-openmemory",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that gives coding agents persistent memory using OpenMemory (local-first, privacy-focused)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "opencode-openmemory": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun build ./src/cli.ts --outfile ./dist/cli.js --target node && tsc --emitDeclarationOnly",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "openmemory",
+    "mem0",
+    "memory",
+    "ai",
+    "coding-agent",
+    "local-first",
+    "privacy"
+  ],
+  "author": "OpenCode Community",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opencode-ai/opencode-openmemory"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.0.162"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.7.3"
+  },
+  "opencode": {
+    "type": "plugin",
+    "hooks": [
+      "chat.message",
+      "event"
+    ]
+  },
+  "files": [
+    "dist"
+  ]
+}
