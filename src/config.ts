@@ -9,35 +9,22 @@ const CONFIG_FILES = [
   join(CONFIG_DIR, "openmemory.json"),
 ];
 
-export type BackendType = "openmemory" | "openmemory-rest";
-
 interface OpenMemoryConfig {
-  // Backend selection
-  backend?: BackendType;
-  
-  // OpenMemory REST API settings (when using REST backend)
   apiUrl?: string;
   apiKey?: string;
   
-  // Search/retrieval settings
   similarityThreshold?: number;
   maxMemories?: number;
   maxProjectMemories?: number;
   maxProfileItems?: number;
   minSalience?: number;
   
-  // Injection settings
   injectProfile?: boolean;
-  
-  // Scope prefix for organizing memories
   scopePrefix?: string;
-  
-  // Default sector for storing memories
   defaultSector?: string;
 }
 
 const DEFAULTS: Required<Omit<OpenMemoryConfig, "apiKey">> = {
-  backend: "openmemory",
   apiUrl: "http://localhost:8080",
   similarityThreshold: 0.6,
   maxMemories: 5,
@@ -70,7 +57,6 @@ export const OPENMEMORY_API_KEY = fileConfig.apiKey ?? process.env.OPENMEMORY_AP
 export const OPENMEMORY_API_URL = fileConfig.apiUrl ?? process.env.OPENMEMORY_API_URL ?? DEFAULTS.apiUrl;
 
 export const CONFIG = {
-  backend: (fileConfig.backend ?? process.env.OPENMEMORY_BACKEND ?? DEFAULTS.backend) as BackendType,
   apiUrl: OPENMEMORY_API_URL,
   similarityThreshold: fileConfig.similarityThreshold ?? DEFAULTS.similarityThreshold,
   maxMemories: fileConfig.maxMemories ?? DEFAULTS.maxMemories,
@@ -83,14 +69,5 @@ export const CONFIG = {
 };
 
 export function isConfigured(): boolean {
-  // OpenMemory MCP doesn't require API key (local), REST might
-  if (CONFIG.backend === "openmemory") {
-    return true; // MCP tools are available via opencode
-  }
-  // REST backend may need API key depending on setup
   return true;
-}
-
-export function getBackendType(): BackendType {
-  return CONFIG.backend;
 }

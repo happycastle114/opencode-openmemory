@@ -2,7 +2,7 @@ import type { Plugin, PluginInput } from "@opencode-ai/plugin";
 import type { Part } from "@opencode-ai/sdk";
 import { tool } from "@opencode-ai/plugin";
 
-import { openMemoryClient, OpenMemoryMCPClient, getMemoryClient } from "./services/client.js";
+import { openMemoryClient, getMemoryClient } from "./services/client.js";
 import { formatContextForPrompt } from "./services/context.js";
 import { getScopes, getTags } from "./services/tags.js";
 import { stripPrivateContent, isFullyPrivate } from "./services/privacy.js";
@@ -46,14 +46,6 @@ export const OpenMemoryPlugin: Plugin = async (ctx: PluginInput) => {
 
   if (!isConfigured()) {
     log("Plugin disabled - OpenMemory not configured");
-  }
-
-  // Set up MCP tool caller if using MCP client
-  const memoryClient = getMemoryClient();
-  if (memoryClient instanceof OpenMemoryMCPClient) {
-    // The MCP client will use the tools exposed by OpenMemory MCP server
-    // These are available in the OpenCode environment
-    log("OpenMemory MCP client initialized");
   }
 
   const compactionHook = isConfigured() && ctx.client
