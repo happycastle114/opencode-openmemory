@@ -24,6 +24,43 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
+interface OpenMemoryQueryResponse {
+  query: string;
+  matches: Array<{
+    id: string;
+    content: string;
+    score?: number;
+    sectors?: string[];
+    primary_sector?: string;
+    path?: string;
+    salience?: number;
+    last_seen_at?: number;
+  }>;
+}
+
+interface OpenMemoryAddResponse {
+  id: string;
+  root_memory_id?: string;
+  primary_sector?: string;
+}
+
+interface OpenMemoryListResponse {
+  items: Array<{
+    id: string;
+    content: string;
+    tags?: string[];
+    metadata?: Record<string, unknown>;
+    created_at?: number;
+    updated_at?: number;
+    last_seen_at?: number;
+    salience?: number;
+    decay_lambda?: number;
+    primary_sector?: string;
+    version?: number;
+    user_id?: string;
+  }>;
+}
+
 export class OpenMemoryRESTClient implements IMemoryBackendClient {
   private baseUrl: string;
   private apiKey?: string;
@@ -65,31 +102,37 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
     
     try {
       const userId = this.getScopeUserId(scope);
-      const params = new URLSearchParams({
-        user_id: userId,
-        search_query: query,
-        size: String(options?.limit ?? CONFIG.maxMemories),
-      });
 
-      const response = await this.fetch(`/api/v1/memories/?${params}`);
+      const response = await this.fetch("/memory/query", {
+        method: "POST",
+        body: JSON.stringify({
+          query,
+          k: options?.limit ?? CONFIG.maxMemories,
+          user_id: userId,
+          filters: {
+            user_id: userId,
+            ...(options?.minSalience !== undefined && { min_score: options.minSalience }),
+            ...(options?.sector && { sector: options.sector }),
+          },
+        }),
+      });
       
       if (!response.ok) {
         const errorText = await response.text();
         return { success: false, results: [], total: 0, error: `HTTP ${response.status}: ${errorText}` };
       }
 
-      const data = await response.json() as { items?: Array<{ id: string; content?: string; text?: string; categories?: string[]; metadata_?: Record<string, unknown>; created_at?: string }>; total?: number };
-      const memories: MemoryItem[] = (data.items || []).map((m) => ({
+      const data = await response.json() as OpenMemoryQueryResponse;
+      const memories: MemoryItem[] = (data.matches || []).map((m) => ({
         id: m.id,
-        content: m.content || m.text || "",
-        score: 1,
-        tags: m.categories,
-        metadata: m.metadata_,
-        createdAt: m.created_at,
+        content: m.content,
+        score: m.score ?? m.salience ?? 1,
+        salience: m.salience,
+        sector: m.primary_sector as MemorySector | undefined,
       }));
 
       log("OpenMemoryREST.searchMemories: success", { count: memories.length });
-      return { success: true, results: memories, total: data.total || memories.length };
+      return { success: true, results: memories, total: memories.length };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log("OpenMemoryREST.searchMemories: error", { error: errorMessage });
@@ -107,20 +150,19 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
     try {
       const userId = this.getScopeUserId(scope);
 
-      const response = await this.fetch("/api/v1/memories/", {
+      const response = await this.fetch("/memory/add", {
         method: "POST",
         body: JSON.stringify({
+          content,
           user_id: userId,
-          text: content,
+          tags: options?.tags,
           metadata: {
             ...options?.metadata,
             type: options?.type,
-            tags: options?.tags,
             scope: scope.projectId ? "project" : "user",
             project_id: scope.projectId,
+            source: "opencode-openmemory",
           },
-          infer: true,
-          app: "opencode-openmemory",
         }),
       });
 
@@ -129,9 +171,9 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
         return { success: false, error: `HTTP ${response.status}: ${errorText}` };
       }
 
-      const data = await response.json() as { id?: string };
+      const data = await response.json() as OpenMemoryAddResponse;
       log("OpenMemoryREST.addMemory: success", { id: data.id });
-      return { success: true, id: data.id };
+      return { success: true, id: data.id, sector: data.primary_sector as MemorySector | undefined };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log("OpenMemoryREST.addMemory: error", { error: errorMessage });
@@ -141,7 +183,7 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
 
   async listMemories(
     scope: MemoryScopeContext,
-    options?: { limit?: number; sector?: MemorySector }
+    options?: { limit?: number; offset?: number; sector?: MemorySector }
   ): Promise<ListMemoriesResult> {
     log("OpenMemoryREST.listMemories", { scope, limit: options?.limit });
     
@@ -149,29 +191,38 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
       const userId = this.getScopeUserId(scope);
       const params = new URLSearchParams({
         user_id: userId,
-        size: String(options?.limit ?? CONFIG.maxProjectMemories),
-        sort_column: "created_at",
-        sort_direction: "desc",
+        l: String(options?.limit ?? CONFIG.maxProjectMemories),
       });
 
-      const response = await this.fetch(`/api/v1/memories/?${params}`);
+      if (options?.offset !== undefined) {
+        params.set("u", String(options.offset));
+      }
+
+      if (options?.sector) {
+        params.set("sector", options.sector);
+      }
+
+      const response = await this.fetch(`/memory/all?${params}`);
 
       if (!response.ok) {
         const errorText = await response.text();
         return { success: false, memories: [], error: `HTTP ${response.status}: ${errorText}` };
       }
 
-      const data = await response.json() as { items?: Array<{ id: string; content?: string; text?: string; categories?: string[]; metadata_?: Record<string, unknown>; created_at?: string }>; total?: number };
+      const data = await response.json() as OpenMemoryListResponse;
       const memories: MemoryItem[] = (data.items || []).map((m) => ({
         id: m.id,
-        content: m.content || m.text || "",
-        tags: m.categories,
-        metadata: m.metadata_,
-        createdAt: m.created_at,
+        content: m.content,
+        salience: m.salience,
+        sector: m.primary_sector as MemorySector | undefined,
+        tags: m.tags,
+        metadata: m.metadata,
+        createdAt: m.created_at ? new Date(m.created_at * 1000).toISOString() : undefined,
+        updatedAt: m.updated_at ? new Date(m.updated_at * 1000).toISOString() : undefined,
       }));
 
       log("OpenMemoryREST.listMemories: success", { count: memories.length });
-      return { success: true, memories, total: data.total };
+      return { success: true, memories, total: memories.length };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log("OpenMemoryREST.listMemories: error", { error: errorMessage });
@@ -184,10 +235,10 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
     
     try {
       const userId = this.getScopeUserId(scope);
+      const params = new URLSearchParams({ user_id: userId });
 
-      const response = await this.fetch("/api/v1/memories/", {
+      const response = await this.fetch(`/memory/${encodeURIComponent(memoryId)}?${params}`, {
         method: "DELETE",
-        body: JSON.stringify({ memory_ids: [memoryId], user_id: userId }),
       });
 
       if (!response.ok) {
@@ -200,6 +251,32 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log("OpenMemoryREST.deleteMemory: error", { error: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  async reinforceMemory(memoryId: string, boost: number = 0.1): Promise<{ success: boolean; error?: string }> {
+    log("OpenMemoryREST.reinforceMemory", { memoryId, boost });
+    
+    try {
+      const response = await this.fetch("/memory/reinforce", {
+        method: "POST",
+        body: JSON.stringify({
+          id: memoryId,
+          boost,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return { success: false, error: `HTTP ${response.status}: ${errorText}` };
+      }
+
+      log("OpenMemoryREST.reinforceMemory: success");
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log("OpenMemoryREST.reinforceMemory: error", { error: errorMessage });
       return { success: false, error: errorMessage };
     }
   }
@@ -240,7 +317,7 @@ export class OpenMemoryRESTClient implements IMemoryBackendClient {
 
 let clientInstance: OpenMemoryRESTClient | null = null;
 
-export function getMemoryClient(): IMemoryBackendClient {
+export function getMemoryClient(): OpenMemoryRESTClient {
   if (!clientInstance) {
     clientInstance = new OpenMemoryRESTClient();
   }
@@ -248,7 +325,7 @@ export function getMemoryClient(): IMemoryBackendClient {
 }
 
 export const openMemoryClient = {
-  get client(): IMemoryBackendClient {
+  get client(): OpenMemoryRESTClient {
     return getMemoryClient();
   },
   
@@ -258,7 +335,7 @@ export const openMemoryClient = {
   addMemory: (content: string, scope: MemoryScopeContext, options?: { type?: MemoryType; tags?: string[]; metadata?: Record<string, unknown> }) => 
     getMemoryClient().addMemory(content, scope, options),
   
-  listMemories: (scope: MemoryScopeContext, options?: { limit?: number; sector?: MemorySector }) => 
+  listMemories: (scope: MemoryScopeContext, options?: { limit?: number; offset?: number; sector?: MemorySector }) => 
     getMemoryClient().listMemories(scope, options),
   
   deleteMemory: (memoryId: string, scope: MemoryScopeContext) => 
@@ -266,4 +343,7 @@ export const openMemoryClient = {
   
   getProfile: (scope: MemoryScopeContext, query?: string) => 
     getMemoryClient().getProfile(scope, query),
+
+  reinforceMemory: (memoryId: string, boost?: number) =>
+    getMemoryClient().reinforceMemory(memoryId, boost),
 };

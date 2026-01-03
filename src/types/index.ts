@@ -123,5 +123,21 @@ export interface IMemoryBackendClient {
 
   getProfile(scope: MemoryScopeContext, query?: string): Promise<ProfileResult>;
 
-  reinforceMemory?(memoryId: string, boost?: number): Promise<{ success: boolean; error?: string }>;
+  reinforceMemory?(memoryId: string, boost?: number): Promise<{ success: boolean; salience?: number; error?: string }>;
+}
+
+// Temporal Knowledge Graph types
+export interface TemporalFactInput {
+  subject: string;
+  predicate: string;
+  object: string;
+  validFrom?: string;
+  validTo?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface TemporalFactResult {
+  success: boolean;
+  id?: string;
+  error?: string;
 }
