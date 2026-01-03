@@ -1,6 +1,6 @@
 # opencode-openmemory
 
-[![npm version](https://badge.fury.io/js/@happycastle%2Fopencode-openmemory.svg)](https://www.npmjs.com/package/@happycastle/opencode-openmemory)
+[![npm version](https://badge.fury.io/js/@happycastle/opencode-openmemory.svg)](https://www.npmjs.com/package/@happycastle/opencode-openmemory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Local-first, privacy-focused persistent memory for OpenCode agents** using [OpenMemory](https://github.com/CaviraOSS/OpenMemory).
