@@ -1,5 +1,8 @@
 # opencode-openmemory
 
+[![npm version](https://badge.fury.io/js/opencode-openmemory.svg)](https://www.npmjs.com/package/opencode-openmemory)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Local-first, privacy-focused persistent memory for OpenCode agents** using [OpenMemory](https://github.com/mem0ai/mem0/tree/main/openmemory).
 
 A fork of [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory), redesigned to work with OpenMemory - an open-source, self-hosted memory backend that keeps your data on your machine.
@@ -199,7 +202,7 @@ When the context window fills up (80% by default), the plugin:
 
 ```bash
 # Clone
-git clone https://github.com/opencode-ai/opencode-openmemory.git
+git clone https://github.com/happycastle114/opencode-openmemory.git
 cd opencode-openmemory
 
 # Install dependencies
@@ -213,6 +216,9 @@ bun run build
 
 # Development (watch mode)
 bun run dev
+
+# Local testing with OpenCode
+bun run build && opencode --plugin ./dist/index.js
 ```
 
 ## Comparison with opencode-supermemory
@@ -230,7 +236,18 @@ bun run dev
 
 MIT
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
 ## Credits
 
 - Based on [opencode-supermemory](https://github.com/supermemoryai/opencode-supermemory) by Supermemory
 - Uses [OpenMemory](https://github.com/mem0ai/mem0/tree/main/openmemory) by Mem0.ai
+- Developed by [@happycastle114](https://github.com/happycastle114)
