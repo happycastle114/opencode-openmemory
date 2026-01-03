@@ -1,4 +1,4 @@
-# @eddy.soungmin/opencode-openmemory
+# opencode-openmemory
 
 [![npm version](https://badge.fury.io/js/@eddy.soungmin%2Fopencode-openmemory.svg)](https://www.npmjs.com/package/@eddy.soungmin/opencode-openmemory)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
