@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
+        with:
+          registries: https://registry.npmjs.org/
 
       - run: bun install
 
